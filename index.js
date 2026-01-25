@@ -184,7 +184,8 @@ app.post('/api/persons', (request, response) => {
 
 app.delete('/api/persons/:id', (request, response) => {
   const id = request.params.id
-  Person.findByIdAndRemove(id).then(result => {
+  console.log('delete id', id);
+  Person.findByIdAndDelete(id).then(result => {
     response.status(204).end()
   }).catch(error => {
     response.status(500).json({ error: error.message })
