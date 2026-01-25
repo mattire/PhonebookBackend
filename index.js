@@ -1,7 +1,10 @@
+require('dotenv').config()
 const express = require('express')
 //const cors = require('cors')
 const morgan = require('morgan')
 const app = express()
+const Person = require('./models/person')
+
 
 let persons = [
     {
@@ -54,19 +57,49 @@ app.get('/api/info', (request, response) => {
 })
 
 app.get('/api/persons', (request, response) => {
-  console.log('Persons req');
-  response.json(persons)
+  console.log('alfkjalkfj');
+  
+  Person.find({}).then((res)=>{
+        console.log('phonebook');
+        console.log(res);
+        res.forEach(p=>{
+            //console.log(p);
+            console.log(`${p.name} ${p.number}`);
+        });
+        response.json(res);
+        //mongoose.connection.close();
+    });
+  ////response.json(persons)
+  //console.log('Persons req');
+  // Person.find({}).then(persons => {
+  //   console.log('Persons found');
+  //   console.log(persons);
+  //   response.json(persons)
+  // }, (error) => {
+  //   response.status(500).json({ error: error.message })
+  // })
 })
 
 app.get('/api/persons/:id', (request, response) => {
   const id = request.params.id
-  const note = persons.find((note) => note.id === id)
+  Person.findById(id).then(person => {
+    if (person) {
+      response.json(person)
+    } else {
+      response.status(404).end()
+    }
+  }, (error) => {
+    response.status(500).json({ error: error.message })
+  });
 
-  if (note) {
-    response.json(note)
-  } else {
-    response.status(404).end()
-  }
+  // const id = request.params.id
+  // const note = persons.find((note) => note.id === id)
+
+  // if (note) {
+  //   response.json(note)
+  // } else {
+  //   response.status(404).end()
+  // }
 })
 
 const generateId = () => {
@@ -78,7 +111,6 @@ app.post('/api/persons', (request, response) => {
 
   //console.log("********************");
   //console.log(body)
-
   if (!body.name) {
     return response.status(400).json({
       error: 'name missing',
@@ -89,34 +121,83 @@ app.post('/api/persons', (request, response) => {
       error: 'number missing',
     })
   }
+  console.log("name and num ok");
+  
+  Person.findOne({ name: body.name }).then(existingPerson => {
+    if (existingPerson) {
+      return response.status(400).json({
+        error: 'name must be unique',
+      })
+    } else {
+      const person = new Person({
+        name: body.name,  
+        number: body.number,
+      })
+      person.save().then(savedPerson => {
+        console.log("person saved");
+        response.json(savedPerson)
+      })
+    }
+  }, (error) => {
+    response.status(500).json({ error: error.message })
+  });
 
-  var foundPerson = persons.find(p=>p.name==body.name)
-  if(foundPerson) {
-    return response.status(400).json({
-      error: 'name must be unique',
-    })
-  }
+  // Person.findById(id).then(person => {
+  //   if (person) {
+  //     return response.status(400).json({
+  //       error: 'name must be unique',
+  //     })
+  //     //response.json(person)
+  //   } else {
+  //     //response.status(404).end()
+  //     const person = new Person({
+  //       id: generateId(),
+  //       name: body.name,
+  //       number: body.number,
+  //     })
+  //     person.save().then(savedPerson => {
+  //       console.log("person saved");
+        
+  //       response.json(savedPerson)
+  //     })
+  //   }
+  // }, (error) => {
+  //   response.status(500).json({ error: error.message })
+  // });
 
-  const person = {
-    name: body.name,
-    number: body.number,
-    id: generateId().toString(),
-  }
-
-  persons = persons.concat(person)
-
-  response.json(person)
+  // var foundPerson = persons.find(p=>p.name==body.name)
+  // if(foundPerson) {
+  //   return response.status(400).json({
+  //     error: 'name must be unique',
+  //   })
+  // }
+  // const person = {
+  //   name: body.name,
+  //   number: body.number,
+  //   id: generateId().toString(),
+  // }
+  // persons = persons.concat(person)
+  // response.json(person)
 })
 
 
 
 app.delete('/api/persons/:id', (request, response) => {
   const id = request.params.id
-  persons = persons
-                .filter((note) => note.id !== id)
+  Person.findByIdAndRemove(id).then(result => {
+    response.status(204).end()
+  }).catch(error => {
+    response.status(500).json({ error: error.message })
+  }
+  // persons = persons
+  //               .filter((note) => note.id !== id)
 
-  response.status(204).end()
-})
+  // response.status(204).end()
+  , (error) => {
+    response.status(500).json({ error: error.message })
+  }
+)});
+
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
