@@ -56,7 +56,7 @@ app.get('/api/info', (request, response) => {
   )
 })
 
-app.get('/api/persons', (request, response) => {
+app.get('/api/persons', (request, response, next) => {
   console.log('alfkjalkfj');
   
   Person.find({}).then((res)=>{
@@ -68,19 +68,10 @@ app.get('/api/persons', (request, response) => {
         });
         response.json(res);
         //mongoose.connection.close();
-    });
-  ////response.json(persons)
-  //console.log('Persons req');
-  // Person.find({}).then(persons => {
-  //   console.log('Persons found');
-  //   console.log(persons);
-  //   response.json(persons)
-  // }, (error) => {
-  //   response.status(500).json({ error: error.message })
-  // })
+    }).catch;
 })
 
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
   const id = request.params.id
   Person.findById(id).then(person => {
     if (person) {
@@ -88,25 +79,17 @@ app.get('/api/persons/:id', (request, response) => {
     } else {
       response.status(404).end()
     }
-  }, (error) => {
-    response.status(500).json({ error: error.message })
-  });
-
-  // const id = request.params.id
-  // const note = persons.find((note) => note.id === id)
-
-  // if (note) {
-  //   response.json(note)
-  // } else {
-  //   response.status(404).end()
-  // }
+  }).catch(error => next(error));
+  // , (error) => {
+  //   response.status(500).json({ error: error.message })
+  // }).catch(error => next(error));
 })
 
 const generateId = () => {
     return Math.round(Math.random()*10000000);
 }
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
   const body = request.body
 
   //console.log("********************");
@@ -138,67 +121,32 @@ app.post('/api/persons', (request, response) => {
         response.json(savedPerson)
       })
     }
-  }, (error) => {
-    response.status(500).json({ error: error.message })
-  });
-
-  // Person.findById(id).then(person => {
-  //   if (person) {
-  //     return response.status(400).json({
-  //       error: 'name must be unique',
-  //     })
-  //     //response.json(person)
-  //   } else {
-  //     //response.status(404).end()
-  //     const person = new Person({
-  //       id: generateId(),
-  //       name: body.name,
-  //       number: body.number,
-  //     })
-  //     person.save().then(savedPerson => {
-  //       console.log("person saved");
-        
-  //       response.json(savedPerson)
-  //     })
-  //   }
-  // }, (error) => {
-  //   response.status(500).json({ error: error.message })
-  // });
-
-  // var foundPerson = persons.find(p=>p.name==body.name)
-  // if(foundPerson) {
-  //   return response.status(400).json({
-  //     error: 'name must be unique',
-  //   })
-  // }
-  // const person = {
-  //   name: body.name,
-  //   number: body.number,
-  //   id: generateId().toString(),
-  // }
-  // persons = persons.concat(person)
-  // response.json(person)
+  }).catch(error => next(error));
 })
 
 
 
-app.delete('/api/persons/:id', (request, response) => {
+app.delete('/api/persons/:id', (request, response, next) => {
   const id = request.params.id
   console.log('delete id', id);
   Person.findByIdAndDelete(id).then(result => {
     response.status(204).end()
-  }).catch(error => {
-    response.status(500).json({ error: error.message })
-  }
-  // persons = persons
-  //               .filter((note) => note.id !== id)
+  }).next(error => next(error));
+});
 
-  // response.status(204).end()
-  , (error) => {
-    response.status(500).json({ error: error.message })
-  }
-)});
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
 
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  } else {
+    return response.status(500).json({ error: error.message })
+  } 
+
+  next(error)
+}
+
+app.use(errorHandler)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
