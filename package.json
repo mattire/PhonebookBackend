@@ -10,6 +10,7 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "build:external": "node scripts/build-external.js",
     "dev": "node --watch index.js",
     "test": "echo \\\"Error: no test specified\\\" && exit 1"
