@@ -144,7 +144,7 @@ app.delete('/api/persons/:id', (request, response, next) => {
   console.log('delete id', id);
   Person.findByIdAndDelete(id).then(result => {
     response.status(204).end()
-  }).next(error => next(error));
+  }).catch(error => next(error));
 });
 
 const errorHandler = (error, request, response, next) => {
