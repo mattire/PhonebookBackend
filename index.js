@@ -7,26 +7,26 @@ const Person = require('./models/person')
 
 
 let persons = [
-    {
-        id: "1",
-        name: "Arto Hellas",
-        number: "040-123456"
-    },
-    {
-        id: "2",
-        name: "Ada Lovelace",
-        number: "39-44-5323523"
-    },
-    {
-        id: "3",
-        name: "Dan Abramov",
-        number: "12-43-234345"
-    },
-    {
-        id: "4",
-        name: "Mary Poppendieck", 
-        number: "39-23-6423122"
-    }
+  {
+    id: '1',
+    name: 'Arto Hellas',
+    number: '040-123456'
+  },
+  {
+    id: '2',
+    name: 'Ada Lovelace',
+    number: '39-44-5323523'
+  },
+  {
+    id: '3',
+    name: 'Dan Abramov',
+    number: '12-43-234345'
+  },
+  {
+    id: '4',
+    name: 'Mary Poppendieck', 
+    number: '39-23-6423122'
+  }
 ]
 
 //app.use(cors())
@@ -34,7 +34,7 @@ app.use(express.json())
 app.use(express.static('dist'))
 //app.use(morgan('tiny'))
 app.use(morgan(function (tokens, req, res) {
-  console.log(req.body);
+  console.log(req.body)
   
   return [
     tokens.method(req, res),
@@ -57,18 +57,15 @@ app.get('/api/info', (request, response) => {
 })
 
 app.get('/api/persons', (request, response, next) => {
-  console.log('alfkjalkfj');
-  
   Person.find({}).then((res)=>{
-        console.log('phonebook');
-        console.log(res);
-        res.forEach(p=>{
-            //console.log(p);
-            console.log(`${p.name} ${p.number}`);
-        });
-        response.json(res);
-        //mongoose.connection.close();
-    }).catch;
+    console.log('phonebook')
+    console.log(res)
+    res.forEach(p=>{
+      console.log(`${p.name} ${p.number}`)
+    })
+    response.json(res)
+    //mongoose.connection.close()
+  }).catch(error => next(error))
 })
 
 app.get('/api/persons/:id', (request, response, next) => {
@@ -79,21 +76,16 @@ app.get('/api/persons/:id', (request, response, next) => {
     } else {
       response.status(404).end()
     }
-  }).catch(error => next(error));
-  // , (error) => {
-  //   response.status(500).json({ error: error.message })
-  // }).catch(error => next(error));
+  }).catch(error => next(error))
 })
 
-const generateId = () => {
-    return Math.round(Math.random()*10000000);
-}
+// const generateId = () => {
+//   return Math.round(Math.random()*10000000)
+// }
 
 app.post('/api/persons', (request, response, next) => {
   const body = request.body
 
-  //console.log("********************");
-  //console.log(body)
   if (!body.name) {
     return response.status(400).json({
       error: 'name missing',
@@ -104,7 +96,7 @@ app.post('/api/persons', (request, response, next) => {
       error: 'number missing',
     })
   }
-  console.log("name and num ok");
+  console.log('name and num ok')
   
   Person.findOne({ name: body.name }).then(existingPerson => {
     if (existingPerson) {
@@ -116,14 +108,14 @@ app.post('/api/persons', (request, response, next) => {
         name: body.name,  
         number: body.number,
       })
-      console.log('Saving person');
+      console.log('Saving person')
       
       person.save().then(savedPerson => {
-        console.log("person saved");
+        console.log('person saved')
         response.json(savedPerson)
-      }).catch(error => next(error));
+      }).catch(error => next(error))
     }
-  }).catch(error => next(error));
+  }).catch(error => next(error))
 })
 
 app.put('/api/persons/:id', (request, response, next) => {
@@ -136,18 +128,19 @@ app.put('/api/persons/:id', (request, response, next) => {
   Person.findByIdAndUpdate(id, person, { new: true })
     .then(updatedPerson => {
       response.json(updatedPerson)
-    }).catch(error => next(error));
+    }).catch(error => next(error))
 })
 
 app.delete('/api/persons/:id', (request, response, next) => {
   const id = request.params.id
-  console.log('delete id', id);
+  console.log('delete id', id)
   Person.findByIdAndDelete(id).then(result => {
+    console.log(result)
     response.status(204).end()
-  }).catch(error => next(error));
-});
+  }).catch(error => next(error))
+})
 
-const errorHandler = (error, request, response, next) => {
+const errorHandler = (error, request, response) => {
   console.error(error.message)
 
   if (error.name === 'CastError') {
@@ -158,7 +151,7 @@ const errorHandler = (error, request, response, next) => {
   else {
     return response.status(500).json({ error: error.message })
   } 
-  next(error)
+  //next(error)
 }
 
 app.use(errorHandler)
